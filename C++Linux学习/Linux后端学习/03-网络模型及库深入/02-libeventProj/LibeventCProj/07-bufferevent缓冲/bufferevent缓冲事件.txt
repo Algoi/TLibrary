@@ -1,0 +1,72 @@
+1、bufferevent基本概念
+	1.1 缓冲区：输入缓冲区、输出缓冲区、evbuffer
+	1.2 回调和水位：
+			读取回调
+			写入回调
+			水位（以服务端的视角）
+				读取低水位：读取操作使得输入缓冲区的数据量在此级别或者更高时，读取回调将被调用。
+				读取高水位：输入缓冲区中的数据量达到次级别后，bufferevent将停止读取，直到输入缓冲区中足够量的数据被抽取，使得数据量低于此级别。
+						bufferevent_setwatermark(bev, EV_READ,
+                             5, // 低水位 0就是无限制 默认是0
+                             10 // 高水位 0就是无限制 默认是0
+						);
+						读取低水位 = 5   读取高数高水位 = 10
+						此时如果输入缓冲区的数据量低于5，那么读取回调函数将不会被触发；
+							如果输入缓冲区的数据量大于等于5小于等于10，那么读取回调函数将会被调用且能被全部读取（data[1024]）
+							如果输入缓冲区的数据量大于10，那么会触发读回调函数，但是不会在一次触发中将数据全部读取，而是按照高水位限制，一次最多读取10字节数据
+							如果剩下的字节数不足5，也就是低于低水位，那么第二次不会被触发，如果大于等于小于等于10将会被全部读取。
+							综上：数据传输过程中可能会有数据残留在缓冲区中，它的大小是小于读取低水位的字节数。
+							注：输入缓冲区的数据来自客户端发送。
+				
+				写入低水位：写入操作使得输入缓冲区的数据量达到或者低于此级别时，写入回调将被调用。
+				写入高水位：无效设置
+	1.3 事件回调
+			#define BEV_EVENT_READING 	/* error encountered while reading */
+			#define BEV_EVENT_WRITING 	/* error encountered while writing */
+			#define BEV_EVENT_EOF	 	/* eof file reached */
+			#define BEV_EVENT_ERROE	 	/* unrecoverable error encountered */
+			#define BEV_EVENT_TIMEOUT 	/* user-specified timeout reached */
+			#define BEV_EVENT_CONNECED 	/* connect operation finished */
+
+2、API函数
+	2.1 struct bufferevent *bufferevent_socket_new(struct event_base *base, evutil_socket_t fd, int options)
+			功能：创建bufferevent对象。
+			参数：
+				fd --> 和bufferevent对象绑定的文件描述符，如果为-1，自动创建一个文件描述符。
+				options --> 
+						/** Options that can be specified when creating a bufferevent */
+						enum bufferevent_options {
+							//如果设置，那么在释放buffevent对象后关闭对应的文件描述符
+							BEV_OPT_CLOSE_ON_FREE = (1<<0),
+							//如果已设置并启用线程，则此缓冲区上的操作受锁保护
+							BEV_OPT_THREADSAFE = (1<<1),
+							//如果设置，回调将在事件循环中延迟运行。
+							BEV_OPT_DEFER_CALLBACKS = (1<<2),
+							//如果设置，则在缓冲区事件上不保留锁的情况下执行回调。
+							//此选项当前要求同时设置BEV_OPT_DEFER_CALLBACKS
+							BEV_OPT_UNLOCK_CALLBACKS = (1<<3)
+						};
+	2.2 int bufferevent_enable(struct bufferevent *bufev, short event)
+		int bufferevent_disable(struct bufferevent *bufev, short event)
+			功能：开启事件，默认开启。关闭事件，将不再触发回调函数
+		short bufferevent_get_enabled(struct bufferevent *bufev)
+			功能：获取bufferevent对象开启的事件
+		event参数：EV_READ | EV_WRITE、EV_READ、EV_WRITE
+	2.3 设置回调函数
+		void bufferevent_setcb(struct bufferevent *bufev, 
+								bufferevent_data_cb readcb, 		//读回调函数
+								bufferevent_data_cb writecb, 		//写回调函数
+								bufferevent_event_cb eventcb, 		//事件回调函数
+								void *cbarg)
+	2.4 读取并移除bufferevent输入缓冲区中的数据，返回读取到的字节数。当客户端发送数据到服务端，就会触发readcb回调函数
+		size_t bufferevent_read(struct bufferevent *bufev, void *data, size_t size)
+		向输出缓冲区写入数据，返回执行成功与否。向输出缓冲区中写入数据时就会触发writecb回调函数
+		int bufferevent_write(struct bufferevent *bufev, const void *data, size_t size)
+	2.5 设置读写超时时间。通过调用该函数设置定时器，定时器触发时只是会清除read/write 事件，当读/写事件触发时，对应的timer会被重置，即重新计时。
+		int bufferevent_set_timeouts(struct bufferevent *bufev,
+			 const struct timeval *tv_read,
+			 const struct timeval *tv_write)
+3 客户端会用的API函数
+	3.1 bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE)
+	3.2 evutil_inet_pton(AF_INET, "ip", &sin.sin_addr.s_addr);
+	3.3 bufferevent_socket_connect

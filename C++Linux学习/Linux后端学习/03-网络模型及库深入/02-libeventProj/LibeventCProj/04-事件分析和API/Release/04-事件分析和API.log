@@ -1,0 +1,5 @@
+﻿  01-signal.cpp
+c:\users\administrator\desktop\linux\unix\知识拆解图\libeventproj\libeventcproj\04-事件分析和api\01-signal.cpp(2): fatal error C1083: 无法打开包括文件: “event2/event.h”: No such file or directory
+  02-timer.cpp
+c:\users\administrator\desktop\linux\unix\知识拆解图\libeventproj\libeventcproj\04-事件分析和api\02-timer.cpp(2): fatal error C1083: 无法打开包括文件: “event2/event.h”: No such file or directory
+  事件分析和API.cpp

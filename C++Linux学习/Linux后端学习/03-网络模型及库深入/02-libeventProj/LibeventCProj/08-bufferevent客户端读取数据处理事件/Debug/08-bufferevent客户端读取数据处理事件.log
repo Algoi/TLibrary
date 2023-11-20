@@ -1,0 +1,7 @@
+﻿cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
+  02-Client.cpp
+c:\users\administrator\desktop\linux\unix\知识拆解图\libeventproj\libeventcproj\08-bufferevent客户端读取数据处理事件\02-client.cpp(104): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
+  LINK : 没有找到 C:\Users\Administrator\Desktop\Linux\UNIX\知识拆解图\libeventProj\LibeventCProj\Debug\08-bufferevent客户端读取数据处理事件.exe 或上一个增量链接没有生成它；正在执行完全链接
+02-Client.obj : error LNK2005: _main 已经在 01-Server.obj 中定义
+C:\Users\Administrator\Desktop\Linux\UNIX\知识拆解图\libeventProj\LibeventCProj\Debug\08-bufferevent客户端读取数据处理事件.exe : fatal error LNK1169: 找到一个或多个多重定义的符号
