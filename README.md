@@ -31,4 +31,10 @@ origin 是git remote add origin git@github.com::xxx.git设置的一个远程仓�
 main是git branch -M "main" 设置的一个分支名
 
 ```
-
+.ssh/config中需要配置
+Host github.com
+HostName ssh.github.com  # 这是最重要的部分
+User git
+Port 443
+PreferredAuthentications publickey
+IdentityFile ~/.ssh/id_rsa
